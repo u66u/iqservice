@@ -1,6 +1,7 @@
 package db
 
 import (
+	"database/sql"
 	"errors"
 	"iq/models"
 	"time"
@@ -56,4 +57,21 @@ func SelectUser(email, password string) (models.User, error) {
 	}
 
 	return user, nil
+}
+
+func UserExistsByEmail(email string) (bool, error) {
+    db := GetDB()
+    var user models.User
+    sqlStatement := `
+        SELECT id 
+        FROM users 
+        WHERE email = $1`
+    err := db.QueryRow(sqlStatement, email).Scan(&user.ID)
+    if err != nil {
+        if err == sql.ErrNoRows {
+            return false, nil
+        }
+        return false, err
+    }
+    return true, nil
 }

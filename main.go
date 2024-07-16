@@ -4,7 +4,6 @@ import (
 	"errors"
 	"iq/db"
 	"iq/handlers"
-	"iq/routes"
 	"log"
 	"net/http"
 	"os"
@@ -30,6 +29,7 @@ func main() {
 	e := echo.New()
 
 	e.Use(handlers.LogRequest)
+	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
 		AllowOrigins: []string{"http://localhost:3000"},
@@ -38,16 +38,19 @@ func main() {
 
 	db.InitDB()
 
-	e.GET("/", routes.Home)
+	e.GET("/", handlers.Home)
 	e.POST("/users/create", handlers.HandleCreateUser)
 	e.PUT("/users/:id", handlers.HandleUpdateUser)
 	e.POST("/login", handlers.HandleLogin)
 
 	r := e.Group("/api")
+	
 	r.Use(echojwt.WithConfig(echojwt.Config{
 		SigningKey:  []byte(jwtSecretKey),
 		TokenLookup: "cookie:token",
 	}))
+	r.Use(middleware.Logger())
+
 
 	r.GET("/protected", handlers.HandleProtected)
 	r.GET("/test", func(c echo.Context) error {
