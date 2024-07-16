@@ -24,7 +24,6 @@ func main() {
 	if jwtSecretKey == "" {
 		log.Fatal("JWT_SECRET_KEY is not set in the environment")
 	}
-  
 
 	e := echo.New()
 
@@ -44,13 +43,12 @@ func main() {
 	e.POST("/login", handlers.HandleLogin)
 
 	r := e.Group("/api")
-	
+
 	r.Use(echojwt.WithConfig(echojwt.Config{
 		SigningKey:  []byte(jwtSecretKey),
 		TokenLookup: "cookie:token",
 	}))
 	r.Use(middleware.Logger())
-
 
 	r.GET("/protected", handlers.HandleProtected)
 	r.GET("/test", func(c echo.Context) error {

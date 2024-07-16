@@ -46,12 +46,11 @@ func SelectUser(email, password string) (models.User, error) {
       SELECT id, name, email, password
       FROM users
       WHERE email = $1`
-	err := db.QueryRow(sqlStatement, email).Scan(&user.ID, &user.Name, &user.Email, &user.Password)
+	err := db.Get(&user, sqlStatement, email)
 	if err != nil {
 		return models.User{}, err
 	}
 
-	// Compare the stored hashed password with the provided password
 	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password)); err != nil {
 		return models.User{}, errors.New("invalid password")
 	}
@@ -60,18 +59,18 @@ func SelectUser(email, password string) (models.User, error) {
 }
 
 func UserExistsByEmail(email string) (bool, error) {
-    db := GetDB()
-    var user models.User
-    sqlStatement := `
+	db := GetDB()
+	var userID uuid.UUID
+	sqlStatement := `
         SELECT id 
         FROM users 
         WHERE email = $1`
-    err := db.QueryRow(sqlStatement, email).Scan(&user.ID)
-    if err != nil {
-        if err == sql.ErrNoRows {
-            return false, nil
-        }
-        return false, err
-    }
-    return true, nil
+	err := db.Get(&userID, sqlStatement, email)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return false, nil
+		}
+		return false, err
+	}
+	return true, nil
 }
