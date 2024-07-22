@@ -1,0 +1,80 @@
+{{define "base.html"}}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="/static/js/htmx.js"></script>
+
+    <link rel="stylesheet" href="/static/css/tailwind.css">
+    <script src="https://cdn.jsdelivr.net/npm/uikit@3.21.6/dist/js/uikit.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/uikit@3.21.6/dist/js/uikit-icons.min.js"></script>
+    <script src="https://unpkg.com/htmx.org/dist/ext/json-enc.js"></script>
+
+    <title>{{ template "title" . }}</title>
+    <script>
+        if (
+            localStorage.getItem("color-theme") === "dark" ||
+            (!("color-theme" in localStorage) &&
+            window.matchMedia("(prefers-color-scheme: dark)").matches)
+        ) {
+            document.documentElement.classList.add("dark");
+        } else {
+            document.documentElement.classList.remove("dark");
+        }
+    </script>
+
+</head>
+
+<body class="uk-padding uk-background-primary text-primary-foreground">
+    <header>
+        <div class="uk-panel">
+            <img
+              class="uk-align-left uk-margin-remove-adjacent"
+              src="static/images/2.png"
+              width="90"
+              height="90"
+            />
+            <p class="uk-article-title mb-4 pt-8">Free IQ tests</p>
+          </div>
+          <ul class="flex flex-rows-3 mb-6" uk-margin>
+            <li class="ml-4 uk-active"><a href="/">Active</a></li>
+            <li class="ml-4 uk-active"><a href="/login">Login</a></li>
+            <li id="theme-toggle" class="ml-4 uk-active"><a href="#">Switch theme</a></li>
+          </ul>
+    </header>
+    <main>
+        {{ template "content" . }}
+    </main>
+    <footer>
+        <script>
+            var themeToggleBtn = document.getElementById("theme-toggle");
+          
+            themeToggleBtn.addEventListener("click", function () {
+              // if set via local storage previously
+              if (localStorage.getItem("color-theme")) {
+                if (localStorage.getItem("color-theme") === "light") {
+                  document.documentElement.classList.add("dark");
+                  localStorage.setItem("color-theme", "dark");
+                } else {
+                  document.documentElement.classList.remove("dark");
+                  localStorage.setItem("color-theme", "light");
+                }
+          
+                // if NOT set via local storage previously
+              } else {
+                if (document.documentElement.classList.contains("dark")) {
+                  document.documentElement.classList.remove("dark");
+                  localStorage.setItem("color-theme", "light");
+                } else {
+                  document.documentElement.classList.add("dark");
+                  localStorage.setItem("color-theme", "dark");
+                }
+              }
+            });
+          </script>
+        <p>© 2024</p>
+    </footer>
+</body>
+</html>
+{{end}}

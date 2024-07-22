@@ -2,6 +2,8 @@ package main
 
 import (
 	"errors"
+	"html/template"
+	"io"
 	"iq/db"
 	"iq/handlers"
 	"log"
@@ -15,6 +17,21 @@ import (
 	"github.com/labstack/echo/v4/middleware"
 )
 
+
+type TemplateRegistry struct {
+	templates map[string]*template.Template
+  }
+
+
+func (t *TemplateRegistry) Render(w io.Writer, name string, data interface{}, c echo.Context) error {
+  tmpl, ok := t.templates[name]
+  if !ok {
+    err := errors.New("Template not found -> " + name)
+    return err
+  }
+  return tmpl.ExecuteTemplate(w, "base.html", data)
+}
+
 func main() {
 	if err := godotenv.Load(); err != nil {
 		log.Println("No .env file found")
@@ -25,8 +42,17 @@ func main() {
 		log.Fatal("JWT_SECRET_KEY is not set in the environment")
 	}
 
-	e := echo.New()
+	templates := make(map[string]*template.Template)
+	templates["login.html"] = template.Must(template.ParseFiles("static/templates/login.html", "static/templates/base.html"))
+	templates["about.html"] = template.Must(template.ParseFiles("static/templates/about.html", "static/templates/base.html"))
+	
 
+	e := echo.New()
+	e.Renderer = &TemplateRegistry{
+		templates: templates,
+	  }
+	
+	e.Static("/static/*/**", "static")
 	e.Use(handlers.LogRequest)
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
@@ -36,6 +62,9 @@ func main() {
 	}))
 
 	db.InitDB()
+
+	e.GET("/about", handlers.RenderAbout)
+	e.GET("/login", handlers.RenderLogin)
 
 	e.GET("/", handlers.Home)
 	e.POST("/users/create", handlers.HandleCreateUser)
@@ -63,5 +92,5 @@ func main() {
 		return c.JSON(http.StatusOK, claims)
 	})
 
-	e.Logger.Fatal(e.Start(":8080"))
+	e.Logger.Fatal(e.Start(":8000"))
 }
